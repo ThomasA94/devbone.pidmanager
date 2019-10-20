@@ -7,11 +7,26 @@ using Serilog;
 namespace devbone.pidmanager
 {
     /// <summary>
-    /// Handles the creation and the deletion of the pid file
+    /// Handles the creation and the deletion of the pid file.
     /// </summary>
     public class PidManager
     {
+        /// <summary>
+        /// If true, the program will exit if a pid file write error occures.
+        /// </summary>
         public bool ExitProgramOnPidFileWriteError { get; set; } = true;
+
+        /// <summary>
+        /// If false, nothing will be logged.
+        /// </summary>
+        public bool UseLogging { get; set; } = true;
+
+        public delegate void ExitProgramOnWriteErrorHandler(object sender, ExitProgramOnWriteError eventArgs);
+
+        /// <summary>
+        /// Event is fired if the program will exit due to a write error of the pid file.
+        /// </summary>
+        public event ExitProgramOnWriteErrorHandler BeforeExitProgramOnWriteError;
 
         private readonly string _path;
         public string Path { get => this._path; }
@@ -104,12 +119,12 @@ namespace devbone.pidmanager
             this.WritePidFile(this.Path, this.Pid);
             if (this.VerifyPidFile())
             {
-                Log.Logger.Information("Successfully created PID file at " + this.Path);
+                if (this.UseLogging) Log.Logger.Information("Successfully created PID file at " + this.Path);
             }
             else
             {
                 string exceptionText = "Verification of pid file failed.";
-                Log.Logger.Error(exceptionText);
+                if (this.UseLogging) Log.Logger.Error(exceptionText);
                 throw new PidException(exceptionText);
             }
         }
@@ -136,7 +151,7 @@ namespace devbone.pidmanager
         }
 
         /// <summary>
-        /// Create the filename with the given <paramref name="programName"/> of this program and .pid
+        /// Create the filename with the given <paramref name="programName"/> of this program and '.pid'.
         /// </summary>
         /// <param name="programName">The name which is used for the pid-filename.</param>
         /// <returns>The filename.</returns>
@@ -146,7 +161,7 @@ namespace devbone.pidmanager
         }
 
         /// <summary>
-        /// Combines the given <paramref name="directory"/> and the given <paramref name="fileName"/>
+        /// Combines the given <paramref name="directory"/> and the given <paramref name="fileName"/>.
         /// </summary>
         /// <param name="directory">The directory of the pid file.</param>
         /// <param name="fileName">The name of the pid file.</param>
@@ -164,7 +179,7 @@ namespace devbone.pidmanager
         {
             int processId = System.Diagnostics.Process.GetCurrentProcess().Id;
 
-            Log.Logger.Verbose("Found process id: " + processId, processId);
+            if (this.UseLogging) Log.Logger.Verbose("Found process id: " + processId, processId);
 
             return processId;
         }
@@ -172,9 +187,9 @@ namespace devbone.pidmanager
         /// <summary>
         /// Write the pid id in the specified file.
         /// </summary>
-        /// <param name="fullPath">The full path of the pid file</param>
+        /// <param name="fullPath">The full path of the pid file.</param>
         /// <param name="pid">The process id.</param>
-        /// <remarks>If <see cref="ExitProgramOnPidFileWriteError"/> is true, the program will exit on</remarks>
+        /// <remarks>If <see cref="ExitProgramOnPidFileWriteError"/> is true, the program will exit on.</remarks>
         private void WritePidFile(string fullPath, int pid)
         {
             try
@@ -183,7 +198,7 @@ namespace devbone.pidmanager
                 {
                     outputFile.Write(pid);
                 }
-                Log.Logger.Verbose("Wrote pid file with " + nameof(pid) + "='" + pid + "' to '" + fullPath + "'.");
+                if (this.UseLogging) Log.Logger.Verbose("Wrote pid file with " + nameof(pid) + "='" + pid + "' to '" + fullPath + "'.");
             }
             catch
             {
@@ -191,12 +206,13 @@ namespace devbone.pidmanager
 
                 if (this.ExitProgramOnPidFileWriteError)
                 {
-                    Log.Logger.Fatal(msg + " Exit program.");
+                    if (this.BeforeExitProgramOnWriteError != null) this.BeforeExitProgramOnWriteError(this, new ExitProgramOnWriteError(this.Path, this.Pid));
+                    if (this.UseLogging) Log.Logger.Fatal(msg + " Exit program.");
                     Environment.Exit(0);
                 }
                 else
                 {
-                    Log.Logger.Error(msg);
+                    if (this.UseLogging) Log.Logger.Error(msg);
                 }
             }
         }
@@ -220,11 +236,11 @@ namespace devbone.pidmanager
                         line = reader.ReadLine();
                     }
                 }
-                Log.Logger.Verbose("Read pid file: '" + line + "'", line);
+                if (this.UseLogging) Log.Logger.Verbose("Read pid file: '" + line + "'", line);
             }
             catch
             {
-                Log.Logger.Warning("Could not read pid file.");
+                if (this.UseLogging) Log.Logger.Warning("Could not read pid file.");
             }
 
             return line;
@@ -246,12 +262,12 @@ namespace devbone.pidmanager
                 }
                 else
                 {
-                    Log.Logger.Debug("Could not find pid file. Ignoring exception...");
+                    if (this.UseLogging) Log.Logger.Debug("Could not find pid file. Ignoring exception...");
                 }
             }
             catch
             {
-                Log.Logger.Warning("Could not delete pid file. Ignoring exception...");
+                if (this.UseLogging) Log.Logger.Warning("Could not delete pid file. Ignoring exception...");
             }
         }
 
@@ -259,17 +275,17 @@ namespace devbone.pidmanager
         /// <summary>
         /// Compares the current pid with the saved pid in the file. Returns true if they are identical.
         /// </summary>
-        /// <returns>True if the current pid with and the saved pid in the file are identical.</returns>
+        /// <returns>True if the current pid and the saved pid in the file are identical.</returns>
         public bool VerifyPidFile()
         {
             string readData = this.ReadPidFile(this.Path);
             if (readData == null || readData != this.Pid.ToString())
             {
-                Log.Logger.Error("Pid file verification failed.");
+                if (this.UseLogging) Log.Logger.Error("Pid file verification failed.");
                 return false;
             }
 
-            Log.Logger.Verbose("Pid file verification successfull.");
+            if (this.UseLogging) Log.Logger.Verbose("Pid file verification successfull.");
             return true;
         }
 

@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp3.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Serilog" Version="2.9.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="devbone.pidmanager">
+      <HintPath>..\devbone.pidmanager\bin\Debug\netstandard2.1\devbone.pidmanager.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+</Project>
