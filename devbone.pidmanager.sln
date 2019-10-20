@@ -6,6 +6,9 @@ MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "devbone.pidmanager", "devbone.pidmanager\devbone.pidmanager.csproj", "{3FF58067-CBD0-4446-AF64-7F4DB478838B}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "devbone.pidmanager.example", "devbone.pidmanager.example\devbone.pidmanager.example.csproj", "{E9C7C1E2-39C3-4EB3-844D-86F6B50D4D11}"
+	ProjectSection(ProjectDependencies) = postProject
+		{3FF58067-CBD0-4446-AF64-7F4DB478838B} = {3FF58067-CBD0-4446-AF64-7F4DB478838B}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

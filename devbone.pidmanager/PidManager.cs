@@ -86,6 +86,7 @@ namespace devbone.pidmanager
             this.Init();
         }
 
+
         public PidManager(int pid, string programName)
         {
             this._path = this.CreateFullPath(this.CreateDirectoryPath(), this.CreateFileName(programName));
@@ -95,7 +96,11 @@ namespace devbone.pidmanager
         }
 
 
-
+        /// <summary>
+        /// Checks if the input is valid path.
+        /// </summary>
+        /// <param name="fullPathOrProgramName">A valid path or a program name.</param>
+        /// <returns>Returns true if it is valid path.</returns>
         private bool IsFullPath(string fullPathOrProgramName)
         {
             try
@@ -134,10 +139,14 @@ namespace devbone.pidmanager
             this.DeletePidFile(this.Path);
         }
 
+        /// <summary>
+        /// Creates the path of the current directory of the program. A filename is not included.
+        /// </summary>
+        /// <returns>The path of the program.</returns>
         private string CreateDirectoryPath()
         {
             string directory = System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
-            directory = Directory.GetParent(directory).FullName;//TODO fix_pid path
+            //directory = Directory.GetParent(directory).FullName; //one directory up
             return directory;
         }
 
