@@ -28,69 +28,74 @@ namespace devbone.pidmanager
         /// </summary>
         public event ExitProgramOnWriteErrorHandler BeforeExitProgramOnWriteError;
 
-        private readonly string _path;
-        public string Path { get => this._path; }
+        public string Path { get; }
 
-        private readonly int _pid;
-        public int Pid { get => this._pid; }
+
+        public int Pid { get; }
 
         /// <summary>
         /// Creates an instance of the <see cref="PidManager"/>
         /// </summary>
-        public PidManager()
+        public PidManager(bool useLogging = true)
         {
-            this._path = this.CreateFullPath(this.CreateDirectoryPath(), this.CreateFileName());
-            this._pid = this.GetPid();
+            this.UseLogging = useLogging;
+            this.Path = this.CreateFullPath(this.CreateDirectoryPath(), this.CreateFileName());
+            this.Pid = this.GetPid();
 
             this.Init();
         }
 
 
-        public PidManager(string fullPathOrProgramName)
+        public PidManager(string fullPathOrProgramName, bool useLogging = true)
         {
+            this.UseLogging = useLogging;
             if (this.IsFullPath(fullPathOrProgramName))
             {
-                this._path = fullPathOrProgramName;
+                this.Path = fullPathOrProgramName;
             }
             else
             {
-                this._path = this.CreateFullPath(this.CreateDirectoryPath(), this.CreateFileName(fullPathOrProgramName));
+                this.Path = this.CreateFullPath(this.CreateDirectoryPath(), this.CreateFileName(fullPathOrProgramName));
             }
 
-            this._pid = this.GetPid();
+            this.Pid = this.GetPid();
 
             this.Init();
         }
 
-        public PidManager(string fullPath, int pid)
+        public PidManager(string fullPath, int pid, bool useLogging = true)
         {
-            this._path = fullPath;
-            this._pid = pid;
+            this.UseLogging = useLogging;
+            this.Path = fullPath;
+            this.Pid = pid;
 
             this.Init();
         }
 
-        public PidManager(string directoryName, string programName)
+        public PidManager(string directoryName, string programName, bool useLogging = true)
         {
-            this._path = this.CreateFullPath(directoryName, this.CreateFileName(programName));
-            this._pid = this.GetPid();
+            this.UseLogging = useLogging;
+            this.Path = this.CreateFullPath(directoryName, this.CreateFileName(programName));
+            this.Pid = this.GetPid();
 
             this.Init();
         }
 
-        public PidManager(string directoryName, string programName, int pid)
+        public PidManager(string directoryName, string programName, int pid, bool useLogging = true)
         {
-            this._path = this.CreateFullPath(directoryName, this.CreateFileName(programName));
-            this._pid = pid;
+            this.UseLogging = useLogging;
+            this.Path = this.CreateFullPath(directoryName, this.CreateFileName(programName));
+            this.Pid = pid;
 
             this.Init();
         }
 
 
-        public PidManager(int pid, string programName)
+        public PidManager(int pid, string programName, bool useLogging = true)
         {
-            this._path = this.CreateFullPath(this.CreateDirectoryPath(), this.CreateFileName(programName));
-            this._pid = pid;
+            this.UseLogging = useLogging;
+            this.Path = this.CreateFullPath(this.CreateDirectoryPath(), this.CreateFileName(programName));
+            this.Pid = pid;
 
             this.Init();
         }
@@ -124,7 +129,7 @@ namespace devbone.pidmanager
             this.WritePidFile(this.Path, this.Pid);
             if (this.VerifyPidFile())
             {
-                if (this.UseLogging) Log.Logger.Information("Successfully created PID file at " + this.Path);
+                if (this.UseLogging) Log.Logger.Information("Successfully created PID file at {pid}", (this.Path is null ? "" : this.Path) );
             }
             else
             {
@@ -188,7 +193,7 @@ namespace devbone.pidmanager
         {
             int processId = System.Diagnostics.Process.GetCurrentProcess().Id;
 
-            if (this.UseLogging) Log.Logger.Verbose("Found process id: " + processId, processId);
+            if (this.UseLogging) Log.Logger.Verbose("Found process id: {processId}", processId);
 
             return processId;
         }
@@ -207,7 +212,7 @@ namespace devbone.pidmanager
                 {
                     outputFile.Write(pid);
                 }
-                if (this.UseLogging) Log.Logger.Verbose("Wrote pid file with " + nameof(pid) + "='" + pid + "' to '" + fullPath + "'.");
+                if (this.UseLogging) Log.Logger.Verbose("Wrote pid file with " + nameof(pid) + "='{pid}' to '{path}'.", pid, fullPath);
             }
             catch
             {
@@ -245,11 +250,11 @@ namespace devbone.pidmanager
                         line = reader.ReadLine();
                     }
                 }
-                if (this.UseLogging) Log.Logger.Verbose("Read pid file: '" + line + "'", line);
+                if (this.UseLogging) Log.Logger.Verbose("Read pid file: '{line}'", line);
             }
             catch
             {
-                if (this.UseLogging) Log.Logger.Warning("Could not read pid file.");
+                if (this.UseLogging) Log.Logger.Warning("Could not read pid file from {path}", fullPath);
             }
 
             return line;
