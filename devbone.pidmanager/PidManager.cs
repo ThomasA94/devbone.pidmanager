@@ -129,7 +129,7 @@ namespace devbone.pidmanager
             this.WritePidFile(this.Path, this.Pid);
             if (this.VerifyPidFile())
             {
-                if (this.UseLogging) Log.Logger.Information("Successfully created PID file at {pid}", (this.Path is null ? "" : this.Path) );
+                if (this.UseLogging) Log.Logger.Information("Successfully created PID file at {path}", this.Path);
             }
             else
             {
